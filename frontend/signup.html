@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup | DevMate AI</title>
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="background">
+    <canvas id="bgCanvas"></canvas>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="bg-grid"></div>
+</div>
+
+<div class="login-container">
+<div class="login-card">
+
+    <!-- Logo — same as login.html -->
+    <div class="logo">
+        <div class="logo-circle">
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                <circle cx="22" cy="18" r="9" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" fill="none"/>
+                <circle cx="22" cy="18" r="3.5" fill="white" opacity="0.95"/>
+                <circle cx="13" cy="11" r="2" fill="white" opacity="0.8"/>
+                <circle cx="31" cy="11" r="2" fill="white" opacity="0.8"/>
+                <circle cx="13" cy="25" r="2" fill="white" opacity="0.8"/>
+                <circle cx="31" cy="25" r="2" fill="white" opacity="0.8"/>
+                <circle cx="22" cy="8"  r="2" fill="white" opacity="0.8"/>
+                <line x1="13" y1="11" x2="19" y2="16" stroke="white" stroke-width="1.2" opacity="0.45"/>
+                <line x1="31" y1="11" x2="25" y2="16" stroke="white" stroke-width="1.2" opacity="0.45"/>
+                <line x1="13" y1="25" x2="19" y2="20" stroke="white" stroke-width="1.2" opacity="0.45"/>
+                <line x1="31" y1="25" x2="25" y2="20" stroke="white" stroke-width="1.2" opacity="0.45"/>
+                <line x1="22" y1="8"  x2="22" y2="14" stroke="white" stroke-width="1.2" opacity="0.45"/>
+                <path d="M13 32 L9 36 L13 40"  stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+                <path d="M31 32 L35 36 L31 40" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+                <line x1="19" y1="41" x2="25" y2="31" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.88"/>
+            </svg>
+        </div>
+        <h1><span class="title-white">Create</span> <span class="title-purple">Account</span></h1>
+        <p>Join DevMate AI</p>
+        <div class="logo-divider"><div class="divider-dot"></div></div>
+    </div>
+
+    <!-- Form -->
+    <form id="signupForm" novalidate>
+
+        <div class="input-group">
+            <label>Full Name</label>
+            <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="fullName" placeholder="Enter your full name" autocomplete="name" required>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Email</label>
+            <div class="input-wrap">
+                <span class="input-icon">📧</span>
+                <input type="email" id="email" placeholder="Enter your email" autocomplete="email" required>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <div class="password-box input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="password" placeholder="Create password" autocomplete="new-password" required>
+                <button type="button" id="togglePassword" class="eye-btn">👁️</button>
+            </div>
+            <div class="strength"><div id="strengthBar"></div></div>
+            <small id="strengthText"></small>
+        </div>
+
+        <div class="input-group">
+            <label>Confirm Password</label>
+            <div class="password-box input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="confirmPassword" placeholder="Confirm password" autocomplete="new-password" required>
+                <button type="button" id="toggleConfirmPassword" class="eye-btn">👁️</button>
+            </div>
+        </div>
+
+        <label class="terms">
+            <input type="checkbox" id="terms">
+            I accept Terms &amp; Conditions
+        </label>
+
+        <button class="signup-btn login-btn" type="submit">
+            Create Account
+        </button>
+
+        <p class="signup-text">
+            Already have an account? <a href="login.html">Login</a>
+        </p>
+
+    </form>
+</div>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/signup.js"></script>
+
+<!-- Same background particles as login -->
+<script>
+(function () {
+    const canvas = document.getElementById("bgCanvas");
+    const ctx = canvas.getContext("2d");
+    let W, H, particles = [];
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+
+    function Particle() {
+        this.x  = Math.random() * W;
+        this.y  = Math.random() * H;
+        this.r  = Math.random() * 1.5 + 0.3;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.a  = Math.random() * 0.6 + 0.1;
+    }
+
+    function initParticles(n) {
+        particles = [];
+        for (let i = 0; i < n; i++) particles.push(new Particle());
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(p => {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+            if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(139,92,246,${p.a})`;
+            ctx.fill();
+        });
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(99,102,241,${0.12 * (1 - dist / 120)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(draw);
+    }
+
+    resize();
+    initParticles(80);
+    draw();
+    window.addEventListener("resize", () => { resize(); initParticles(80); });
+})();
+</script>
+
+</body>
+</html>

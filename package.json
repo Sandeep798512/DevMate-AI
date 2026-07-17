@@ -1,0 +1,11 @@
+{
+  "name": "devmate-ai",
+  "version": "2.0.0",
+  "description": "DevMate AI — Intelligent coding assistant",
+  "private": true,
+  "scripts": {
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev",
+    "install:backend": "cd backend && npm install"
+  }
+}

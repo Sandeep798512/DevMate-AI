@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Shared conversation on DevMate AI" />
+  <title>Shared Chat — DevMate AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Markdown rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <!-- Syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg-base);
+    }
+    .share-container {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .share-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    .share-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    .share-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      background: var(--brand-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .share-messages-wrap {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-right: 8px;
+    }
+    .share-footer-banner {
+      text-align: center;
+      padding: 14px;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 16px;
+      flex-shrink: 0;
+    }
+    .share-footer-banner a {
+      color: var(--brand-primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .message {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+    .message.user {
+      background: var(--msg-user-bg);
+      border-color: var(--msg-user-border);
+    }
+    .message.ai {
+      background: var(--msg-ai-bg);
+      border-color: var(--msg-ai-border);
+    }
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 12px;
+      color: var(--text-secondary);
+    }
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border-left-color: var(--brand-primary);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="share-container">
+    <header class="share-header">
+      <h1 id="shareTitle" class="share-title">Loading shared chat...</h1>
+      <div class="share-logo">
+        <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+          <rect width="32" height="32" rx="10" fill="url(#lg1)"/>
+          <circle cx="16" cy="13" r="5.5" stroke="white" stroke-width="1.5" fill="none" opacity="0.9"/>
+          <circle cx="16" cy="13" r="2" fill="white" opacity="0.95"/>
+          <defs>
+            <linearGradient id="lg1" x1="0" y1="0" x2="32" y2="32">
+              <stop stop-color="#4f46e5"/>
+              <stop offset="0.5" stop-color="#7c3aed"/>
+              <stop offset="1" stop-color="#a855f7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span style="margin-left: 8px;">DevMate AI</span>
+      </div>
+    </header>
+
+    <div id="loadingState" class="loading-container">
+      <div class="spinner"></div>
+      <p>Fetching shared conversation...</p>
+    </div>
+
+    <div id="messagesContainer" class="share-messages-wrap hidden"></div>
+
+    <div class="share-footer-banner">
+      This is a read-only snapshot. Create your own assistant at <a href="index.html">DevMate AI</a>.
+    </div>
+  </div>
+
+  <script>
+    // Get backend base URL (handles custom port or defaults to 3000)
+    const API_BASE = window.location.origin.includes("localhost") 
+      ? "http://localhost:3000/api" 
+      : `${window.location.origin}/api`;
+
+    // Helper: HTML escape
+    function escapeHtml(s = "") {
+      return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    // Helper: Render markdown
+    function renderMarkdown(el, text) {
+      if (window.marked) {
+        marked.setOptions({ gfm: true, breaks: true });
+        el.innerHTML = marked.parse(text);
+        
+        // Add copy buttons to code blocks
+        el.querySelectorAll("pre").forEach((pre) => {
+          const btn = document.createElement("button");
+          btn.className = "copy-code-btn";
+          btn.textContent = "Copy";
+          btn.addEventListener("click", () => {
+            const code = pre.querySelector("code")?.textContent || "";
+            navigator.clipboard.writeText(code);
+            btn.textContent = "Copied!";
+            setTimeout(() => (btn.textContent = "Copy"), 2000);
+          });
+          pre.style.position = "relative";
+          pre.appendChild(btn);
+        });
+
+        // Syntax highlighting
+        if (window.hljs) {
+          el.querySelectorAll("pre code").forEach((block) => {
+            hljs.highlightElement(block);
+          });
+        }
+      } else {
+        el.textContent = text;
+      }
+    }
+
+    // Extract query param 's'
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareId = urlParams.get("s");
+
+    if (!shareId) {
+      document.getElementById("loadingState").innerHTML = "<p>❌ Invalid or missing share ID.</p>";
+    } else {
+      fetchSharedChat();
+    }
+
+    async function fetchSharedChat() {
+      try {
+        const res = await fetch(`${API_BASE}/share/${shareId}`);
+        if (!res.ok) throw new Error("Shared chat not found.");
+        const data = await res.json();
+        
+        document.getElementById("shareTitle").textContent = data.sharedChat.title;
+        renderMessages(data.sharedChat.messages);
+      } catch (err) {
+        document.getElementById("loadingState").innerHTML = `<p>❌ Error: ${err.message}</p>`;
+      }
+    }
+
+    function renderMessages(messages) {
+      const loadingState = document.getElementById("loadingState");
+      const messagesContainer = document.getElementById("messagesContainer");
+      
+      loadingState.style.display = "none";
+      messagesContainer.classList.remove("hidden");
+      
+      messages.forEach(m => {
+        const div = document.createElement("div");
+        div.className = `message ${m.role}`;
+        
+        const isUser = m.role === "user";
+        
+        div.innerHTML = `
+          <div class="message-header" style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <div class="avatar ${isUser ? "user-avatar" : "ai-avatar"}" style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:0.8rem; background:${isUser ? "var(--brand-gradient)" : "var(--border)"}; color:white;">${isUser ? "U" : "AI"}</div>
+            <span class="message-role" style="font-weight:600; font-size:0.9rem; color:var(--text-primary);">${isUser ? "You" : "DevMate AI"}</span>
+          </div>
+          <div class="message-content ${isUser ? "user-content" : ""}"></div>
+        `;
+        
+        messagesContainer.appendChild(div);
+        const contentEl = div.querySelector(".message-content");
+        
+        if (isUser) {
+          const content = m.content;
+          if (content.startsWith("📎")) {
+            const dbMatch = content.match(/^📎 ([^\n]+)\n\nFile Content:\n([\s\S]*?)\n\nUser Question:\n([\s\S]*)$/);
+            const imgDbMatch = content.match(/^📎 ([^\n]+) \(Image\)\n\nUser Question:\n([\s\S]*)$/);
+            const displayMatch = content.match(/^📎 ([^\n]+)(?:\n\n([\s\S]*))?$/);
+            
+            let filename = "";
+            let promptText = "";
+            
+            if (dbMatch) {
+              filename = dbMatch[1];
+              promptText = dbMatch[3];
+            } else if (imgDbMatch) {
+              filename = imgDbMatch[1];
+              promptText = imgDbMatch[2];
+            } else if (displayMatch) {
+              filename = displayMatch[1];
+              promptText = displayMatch[2] || "";
+            }
+            
+            if (filename) {
+              contentEl.innerHTML = `
+                <div class="attachment-pill-chat">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;vertical-align:middle;display:inline-block;"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                  <span style="vertical-align:middle;">${escapeHtml(filename)}</span>
+                </div>
+                ${promptText ? `<div class="prompt-text-chat" style="margin-top:8px; white-space:pre-wrap; font-size:0.95rem; color:var(--text-primary);">${escapeHtml(promptText)}</div>` : ""}
+              `;
+            } else {
+              contentEl.textContent = content;
+            }
+          } else {
+            contentEl.textContent = content;
+          }
+        } else {
+          renderMarkdown(contentEl, m.content);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
