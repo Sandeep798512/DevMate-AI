@@ -7,8 +7,7 @@
 const express = require("express");
 const router  = express.Router();
 const crypto  = require("crypto");
-// const Chat    = require("../models/Chat");
-const Chat = require("../models/chat");
+const Chat = require("../models/chat");;
 const SharedChat = require("../models/SharedChat");
 
 // ── Helper: get token from request ────────────────────────────────────────────

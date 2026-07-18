@@ -1358,3 +1358,141 @@ body {
 .ch-pin-btn:hover {
   color: #fbbf24; /* gold / yellow */
 }
+
+/* ─── Profile Avatar & Dropdown (Gemini Style) ───────────────── */
+.profile-container {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-circle-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--brand-gradient);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform var(--transition), box-shadow var(--transition);
+  padding: 0;
+  outline: none;
+}
+
+.avatar-circle-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+}
+
+.avatar-initials {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: white;
+  user-select: none;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg), 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  z-index: 1000;
+  transform-origin: top right;
+  animation: dropdownAnim var(--transition) forwards;
+}
+
+.avatar-dropdown.hidden {
+  display: none;
+}
+
+@keyframes dropdownAnim {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
+.user-details {
+  min-width: 0;
+}
+
+.user-name-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 0;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  font-family: var(--font-sans);
+}
+
+.dropdown-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.dropdown-icon {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.user-email-item {
+  cursor: default;
+  color: var(--text-muted);
+}
+.user-email-item:hover {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.logout-item:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}

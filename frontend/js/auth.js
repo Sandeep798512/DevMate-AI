@@ -147,18 +147,84 @@ document.addEventListener("DOMContentLoaded", () => {
   const userName    = document.getElementById("userName");
   const profileBtn  = document.getElementById("profileBtn");
   const logoutBtn   = document.getElementById("logoutBtn");
+  const userEmail   = document.getElementById("dropdownUserEmail");
+  const userInitials = document.getElementById("userInitials");
+  const avatarDropdown = document.getElementById("avatarDropdown");
 
   if (user) {
     if (authButtons) authButtons.style.display = "none";
     if (profileMenu) profileMenu.classList.remove("hidden");
-    if (userName)    userName.textContent = user.name || "User";
+    
+    const displayFieldsName = user.name || "User";
+    if (userName) userName.textContent = displayFieldsName;
+    if (userEmail) userEmail.textContent = user.email || (user.guest ? "Guest Session" : "no-email@devmate.ai");
+
+    if (userInitials) {
+      if (user.avatar) {
+        userInitials.innerHTML = `<img src="${user.avatar}" alt="${displayFieldsName}" class="avatar-img" />`;
+      } else {
+        const initials = displayFieldsName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+        userInitials.textContent = initials || "U";
+      }
+    }
   } else {
     if (authButtons) authButtons.style.display = "flex";
     if (profileMenu) profileMenu.classList.add("hidden");
   }
 
-  profileBtn?.addEventListener("click", () => {
-    console.log("Profile clicked");
+  profileBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    avatarDropdown?.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (avatarDropdown && !avatarDropdown.classList.contains("hidden")) {
+      if (!profileBtn?.contains(e.target) && !avatarDropdown.contains(e.target)) {
+        avatarDropdown.classList.add("hidden");
+      }
+    }
+  });
+
+  document.getElementById("dropdownSettings")?.addEventListener("click", () => {
+    avatarDropdown?.classList.add("hidden");
+    if (window.showToast) {
+      window.showToast("Settings coming soon!", "success");
+    } else {
+      alert("Settings coming soon!");
+    }
+  });
+
+  document.getElementById("dropdownExport")?.addEventListener("click", () => {
+    avatarDropdown?.classList.add("hidden");
+    if (window.showToast) {
+      window.showToast("Exporting conversation...", "success");
+    }
+    const exportData = JSON.stringify(window.state?.messages || [], null, 2);
+    const blob = new Blob([exportData], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `devmate-chat-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("dropdownHelp")?.addEventListener("click", () => {
+    avatarDropdown?.classList.add("hidden");
+    if (window.showToast) {
+      window.showToast("Help & documentation is located in the sidebar guide.", "success");
+    } else {
+      alert("Help & documentation is located in the sidebar guide.");
+    }
+  });
+
+  document.getElementById("dropdownAbout")?.addEventListener("click", () => {
+    avatarDropdown?.classList.add("hidden");
+    if (window.showToast) {
+      window.showToast("DevMate AI v3.1 — Professional AI Developer Assistant", "success");
+    } else {
+      alert("DevMate AI v3.1 — Professional AI Developer Assistant");
+    }
   });
 
   logoutBtn?.addEventListener("click", () => {
