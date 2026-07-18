@@ -359,17 +359,15 @@ router.patch("/profile", protect, async (req, res, next) => {
 // ─────────────────────────────────────────────────────────────────────────────
 router.post("/guest", async (req, res, next) => {
   try {
-    // Find or create guest account
-    let guest = await User.findOne({ email: "guest@devmate.ai" });
-    if (!guest) {
-      guest = await User.create({
-        name:       "Guest",
-        email:      "guest@devmate.ai",
-        isGuest:    true,
-        isVerified: true,
-        password:   crypto.randomBytes(20).toString("hex"), // random unused password
-      });
-    }
+    // Generate a unique guest user so different devices/sessions have independent chat histories
+    const uniqueId = crypto.randomBytes(6).toString("hex");
+    const guest = await User.create({
+      name:       `Guest`,
+      email:      `guest_${uniqueId}@devmate.ai`,
+      isGuest:    true,
+      isVerified: true,
+      password:   crypto.randomBytes(20).toString("hex"),
+    });
 
     const accessToken  = signAccessToken(guest._id);
     const refreshToken = signRefreshToken(guest._id);
