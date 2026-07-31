@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 
 function createTransport() {
+  const pass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
   return nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -8,7 +9,7 @@ function createTransport() {
     family: 4, // Force IPv4 to prevent IPv6 DNS lookup delays on Render/cloud environments
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      pass: pass,
     },
     connectionTimeout: 10000, // 10 seconds connection timeout
     greetingTimeout: 10000,   // 10 seconds greeting timeout
