@@ -2,11 +2,17 @@ const nodemailer = require("nodemailer");
 
 function createTransport() {
   return nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    family: 4, // Force IPv4 to prevent IPv6 DNS lookup delays on Render/cloud environments
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    connectionTimeout: 10000, // 10 seconds connection timeout
+    greetingTimeout: 10000,   // 10 seconds greeting timeout
+    socketTimeout: 15000,     // 15 seconds socket timeout
   });
 }
 
@@ -44,31 +50,40 @@ async function sendVerificationEmail(toEmail, name, otp) {
     return;
   }
 
-  const transport = createTransport();
-  await transport.sendMail({
-    from: `"DevMate AI" <${process.env.EMAIL_USER}>`,
-    to: toEmail,
-    subject: "DevMate AI — Verify Your Email",
-    html: `
-      <div style="${baseStyle}">
-        <div style="${headerStyle}">
-          <h1 style="margin:0;font-size:20px;color:white">DevMate AI</h1>
-          <p style="margin:4px 0 0;color:rgba(255,255,255,.75);font-size:13px">Email Verification</p>
+  try {
+    const transport = createTransport();
+    // Non-blocking asynchronous dispatch so HTTP response is returned immediately to the frontend
+    transport.sendMail({
+      from: `"DevMate AI" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: "DevMate AI — Verify Your Email",
+      html: `
+        <div style="${baseStyle}">
+          <div style="${headerStyle}">
+            <h1 style="margin:0;font-size:20px;color:white">DevMate AI</h1>
+            <p style="margin:4px 0 0;color:rgba(255,255,255,.75);font-size:13px">Email Verification</p>
+          </div>
+          <div style="${bodyStyle}">
+            <h2 style="margin:0 0 10px;color:#e8e8f0">Hi ${name} 👋</h2>
+            <p style="color:#9ca3af;line-height:1.6">
+              Welcome to DevMate AI! Please verify your email address using the OTP below.
+              It expires in <strong style="color:#e8e8f0">10 minutes</strong>.
+            </p>
+            ${otpBlock(otp)}
+            <p style="color:#6b7280;font-size:13px">
+              If you didn't create a DevMate AI account, you can safely ignore this email.
+            </p>
+          </div>
         </div>
-        <div style="${bodyStyle}">
-          <h2 style="margin:0 0 10px;color:#e8e8f0">Hi ${name} 👋</h2>
-          <p style="color:#9ca3af;line-height:1.6">
-            Welcome to DevMate AI! Please verify your email address using the OTP below.
-            It expires in <strong style="color:#e8e8f0">10 minutes</strong>.
-          </p>
-          ${otpBlock(otp)}
-          <p style="color:#6b7280;font-size:13px">
-            If you didn't create a DevMate AI account, you can safely ignore this email.
-          </p>
-        </div>
-      </div>
-    `,
-  });
+      `,
+    }).then((info) => {
+      console.log("✅ Verification email sent successfully to", toEmail, ":", info.messageId);
+    }).catch((err) => {
+      console.error("❌ Failed to send verification email (non-fatal):", err.message);
+    });
+  } catch (err) {
+    console.error("❌ Error initializing email transport:", err.message);
+  }
 }
 
 /**
@@ -80,31 +95,41 @@ async function sendPasswordResetEmail(toEmail, name, otp) {
     return;
   }
 
-  const transport = createTransport();
-  await transport.sendMail({
-    from: `"DevMate AI" <${process.env.EMAIL_USER}>`,
-    to: toEmail,
-    subject: "DevMate AI — Password Reset OTP",
-    html: `
-      <div style="${baseStyle}">
-        <div style="${headerStyle}">
-          <h1 style="margin:0;font-size:20px;color:white">DevMate AI</h1>
-          <p style="margin:4px 0 0;color:rgba(255,255,255,.75);font-size:13px">Password Reset</p>
+  try {
+    const transport = createTransport();
+    // Non-blocking asynchronous dispatch so HTTP response is returned immediately to the frontend
+    transport.sendMail({
+      from: `"DevMate AI" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: "DevMate AI — Password Reset OTP",
+      html: `
+        <div style="${baseStyle}">
+          <div style="${headerStyle}">
+            <h1 style="margin:0;font-size:20px;color:white">DevMate AI</h1>
+            <p style="margin:4px 0 0;color:rgba(255,255,255,.75);font-size:13px">Password Reset</p>
+          </div>
+          <div style="${bodyStyle}">
+            <h2 style="margin:0 0 10px;color:#e8e8f0">Hi ${name},</h2>
+            <p style="color:#9ca3af;line-height:1.6">
+              We received a request to reset your password. Use the OTP below.
+              It expires in <strong style="color:#e8e8f0">10 minutes</strong>.
+            </p>
+            ${otpBlock(otp)}
+            <p style="color:#6b7280;font-size:13px">
+              If you didn't request a password reset, your account is safe — just ignore this email.
+            </p>
+          </div>
         </div>
-        <div style="${bodyStyle}">
-          <h2 style="margin:0 0 10px;color:#e8e8f0">Hi ${name},</h2>
-          <p style="color:#9ca3af;line-height:1.6">
-            We received a request to reset your password. Use the OTP below.
-            It expires in <strong style="color:#e8e8f0">10 minutes</strong>.
-          </p>
-          ${otpBlock(otp)}
-          <p style="color:#6b7280;font-size:13px">
-            If you didn't request a password reset, your account is safe — just ignore this email.
-          </p>
-        </div>
-      </div>
-    `,
-  });
+      `,
+    }).then((info) => {
+      console.log("✅ Password reset email sent successfully to", toEmail, ":", info.messageId);
+    }).catch((err) => {
+      console.error("❌ Failed to send password reset email (non-fatal):", err.message);
+    });
+  } catch (err) {
+    console.error("❌ Error initializing email transport:", err.message);
+  }
 }
 
 module.exports = { sendVerificationEmail, sendPasswordResetEmail };
+

@@ -23,6 +23,7 @@ const chatRoutes   = require("./routes/chats");
 const shareRoutes  = require("./routes/share");
 
 const app  = express();
+// app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3000;
 
 // ── Connect MongoDB ───────────────────────────────────────────────────────────
