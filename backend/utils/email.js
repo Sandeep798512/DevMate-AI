@@ -58,6 +58,7 @@ async function sendVerificationEmail(toEmail, name, otp) {
       from: `"DevMate AI" <${process.env.EMAIL_USER}>`,
       to: toEmail,
       subject: "DevMate AI — Verify Your Email",
+      text: `Hi ${name},\n\nYour DevMate AI email verification OTP is: ${otp}\n\nThis OTP expires in 10 minutes.\nIf you didn't request this, please ignore this email.`,
       html: `
         <div style="${baseStyle}">
           <div style="${headerStyle}">
@@ -103,6 +104,7 @@ async function sendPasswordResetEmail(toEmail, name, otp) {
       from: `"DevMate AI" <${process.env.EMAIL_USER}>`,
       to: toEmail,
       subject: "DevMate AI — Password Reset OTP",
+      text: `Hi ${name},\n\nYour DevMate AI password reset OTP is: ${otp}\n\nThis OTP expires in 10 minutes.\nIf you didn't request a password reset, please ignore this email.`,
       html: `
         <div style="${baseStyle}">
           <div style="${headerStyle}">
