@@ -1,6 +1,6 @@
 # DevMate AI 🤖
 
-> A state-of-the-art AI-powered developer assistant featuring JWT authentication, persistent chat memory, multi-tool AI panels, file upload analysis, GitHub repository scanning, and ChatGPT-style progressive typewriter answers.
+> A modern full-stack AI assistant featuring secure JWT authentication, persistent chat memory, intelligent document and image analysis, GitHub repository analysis, file uploads, and natural ChatGPT-style conversational interactions.
 
 ![DevMate AI](https://img.shields.io/badge/DevMate-AI-6366f1?style=for-the-badge&logo=openai&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)
