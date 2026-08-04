@@ -176,4 +176,8 @@ const API_BASE = window.location.hostname === "localhost" || window.location.hos
 ## 📜 License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-_Built with ❤️ by sandeepgaud. Stars and forks welcome!_
+## 👨‍💻 Author
+
+**Sandeep Gaud**
+
+If you found this project useful, feel free to ⭐ the repository and share your feedback.
