@@ -122,8 +122,14 @@ function setupEventListeners() {
   });
 
   // New chat
-  $("newChatBtn").addEventListener("click", clearChat);
-
+  // $("newChatBtn").addEventListener("click", clearChat);
+$("newChatBtn").addEventListener("click", () => {
+  clearChat();
+  // Mobile: close sidebar and show welcome screen
+  if (window.innerWidth < 768) {
+    dom.sidebar.classList.remove("open");
+  }
+});
   // Send
   dom.sendBtn.addEventListener("click", handleSend);
 
