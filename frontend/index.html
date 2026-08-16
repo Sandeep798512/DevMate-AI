@@ -211,9 +211,10 @@
 
     <!-- Welcome screen -->
     <div class="welcome-screen" id="welcomeScreen">
+      <div class="welcome-glow-bg"></div>
       <div class="welcome-icon">
 
-        <!-- ✅ NEW WELCOME LOGO — larger version -->
+        <!-- ✅ WELCOME LOGO (Unchanged) -->
         <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect width="72" height="72" rx="20" fill="url(#wg2)"/>
           <!-- Outer glow ring -->
@@ -248,7 +249,7 @@
         </svg>
 
       </div>
-      <h2 class="welcome-title">How can I help you today?</h2>
+      <h2 class="welcome-title"><span id="typingHeadline">How can I help you today?</span><span class="typing-cursor"></span></h2>
       <p class="welcome-subtitle">Select a tool from the sidebar or try one of these quick actions</p>
       <div class="quick-actions">
         <button class="quick-action" data-action="explain">

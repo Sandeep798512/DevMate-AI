@@ -77,7 +77,71 @@ const dom = {
   removeAttachmentBtn: $("removeAttachmentBtn"),
   shareModal:          $("shareModal"),
   shareLinkInput:      $("shareLinkInput"),
+  typingHeadline:      $("typingHeadline"),
 };
+
+// ─── Welcome Title Typewriter Effect ──────────────────────────────────────────
+
+const TYPING_PHRASES = [
+  "How can I help you today?",
+  "Paste code to explain or optimize…",
+  "Detect bugs & fix errors fast…",
+  "Generate READMEs & code reviews…",
+  "Analyze GitHub repos & architecture…"
+];
+
+let typingState = {
+  phraseIndex: 0,
+  charIndex: 0,
+  isDeleting: false,
+  timeoutId: null,
+  active: true,
+};
+
+function initHeadlineTypewriter() {
+  const targetEl = dom.typingHeadline || $("typingHeadline");
+  if (!targetEl) return;
+
+  function typeStep() {
+    if (!typingState.active) return;
+    
+    // Pause if welcome screen is hidden
+    if (dom.welcome && dom.welcome.style.display === "none") {
+      typingState.timeoutId = setTimeout(typeStep, 1000);
+      return;
+    }
+
+    const currentPhrase = TYPING_PHRASES[typingState.phraseIndex];
+
+    if (typingState.isDeleting) {
+      typingState.charIndex--;
+      targetEl.textContent = currentPhrase.substring(0, typingState.charIndex);
+    } else {
+      typingState.charIndex++;
+      targetEl.textContent = currentPhrase.substring(0, typingState.charIndex);
+    }
+
+    let delay = typingState.isDeleting ? 30 : 60;
+
+    if (!typingState.isDeleting && typingState.charIndex === currentPhrase.length) {
+      delay = 2400; // Pause at full string
+      typingState.isDeleting = true;
+    } else if (typingState.isDeleting && typingState.charIndex === 0) {
+      typingState.isDeleting = false;
+      typingState.phraseIndex = (typingState.phraseIndex + 1) % TYPING_PHRASES.length;
+      delay = 350;
+    }
+
+    typingState.timeoutId = setTimeout(typeStep, delay);
+  }
+
+  if (typingState.timeoutId) clearTimeout(typingState.timeoutId);
+  typingState.phraseIndex = 0;
+  typingState.charIndex = 0;
+  typingState.isDeleting = false;
+  typingState.active = true;
+  typeStep();
+}
 
 // ─── Tool config ──────────────────────────────────────────────────────────────
 
@@ -100,6 +164,7 @@ const TOOLS = {
   initTheme();
   initVoice();
   autoResizeTextarea();
+  initHeadlineTypewriter();
   await checkServerStatus();
   await loadChatHistory();
 })();
@@ -684,6 +749,7 @@ function clearChat() {
   dom.messages.innerHTML = "";
   if (dom.welcome) dom.welcome.style.display = "";
   clearInput();
+  initHeadlineTypewriter();
   document.querySelectorAll(".ch-item").forEach(el => el.classList.remove("active"));
   showToast("Chat cleared", "info");
 }
