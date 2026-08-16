@@ -88,8 +88,8 @@ const TOOLS = {
   optimize: { label: "Optimize Code",   endpoint: "/optimize",     field: "code",     placeholder: "Paste code to optimize…" },
   review:   { label: "Code Review",     endpoint: "/review",       field: "code",     placeholder: "Paste code for a professional review…" },
   summarize:{ label: "Summarize",       endpoint: "/summarize",    field: "code",     placeholder: "Paste code to summarize…" },
-  readme:   { label: "README Gen",      endpoint: "/readme",       field: "code",     placeholder: "Paste project code to generate a README…" },
-  github:   { label: "GitHub Analysis", endpoint: "/github/analyze", field: "repoUrl", placeholder: "Paste code or describe the repo…" },
+  readme:   { label: "README Gen",      endpoint: "/readme",       field: "code",     placeholder: "Paste project GitHub repo URL or code to generate a README…" },
+  github:   { label: "GitHub Analysis", endpoint: "/github/analyze", field: "repoUrl", placeholder: "Paste GitHub repo URL or describe the repo…" },
   upload:   { label: "Upload File",     endpoint: null,            field: null,       placeholder: "Optional: add notes about the file…" },
 };
 
