@@ -37,10 +37,12 @@ router.get("/test-email", async (req, res) => {
 
   const transport = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    family: 4,
+    port: 587,
+    secure: false, // use STARTTLS
     auth: { user, pass },
+    tls: {
+      rejectUnauthorized: false
+    },
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
