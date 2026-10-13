@@ -43,95 +43,152 @@ function otpBlock(otp) {
 }
 
 /**
- * Send email verification OTP
+ * Multi-provider email dispatcher:
+ * 1. Brevo REST API (HTTPS port 443 - free, allows any recipient, never blocked by Render)
+ * 2. Resend REST API (HTTPS port 443 - never blocked by Render)
+ * 3. Nodemailer Gmail SMTP (works on Localhost / networks where ports 465/587 are open)
  */
-async function sendVerificationEmail(toEmail, name, otp) {
+async function dispatchEmail({ toEmail, name, subject, text, html }) {
+  // Option 1: Brevo HTTPS REST API (Port 443)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "api-key": process.env.BREVO_API_KEY.trim(),
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: {
+            name: "DevMate AI",
+            email: process.env.EMAIL_USER || "sandeepgaud8081@gmail.com",
+          },
+          to: [{ email: toEmail, name: name || "User" }],
+          subject,
+          htmlContent: html,
+          textContent: text,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log("✅ Email sent via Brevo HTTPS API:", data.messageId);
+        return;
+      }
+      console.error("❌ Brevo API error:", data);
+    } catch (err) {
+      console.error("❌ Brevo request failed:", err.message);
+    }
+  }
+
+  // Option 2: Resend HTTPS REST API (Port 443)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM || "DevMate AI <onboarding@resend.dev>",
+          to: [toEmail],
+          subject,
+          html,
+          text,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log("✅ Email sent via Resend HTTPS API:", data.id);
+        return;
+      }
+      console.error("❌ Resend API error:", data);
+    } catch (err) {
+      console.error("❌ Resend request failed:", err.message);
+    }
+  }
+
+  // Option 3: Nodemailer Gmail SMTP (for Localhost / open port environments)
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn("⚠️  EMAIL not configured — OTP:", otp, "(logged for dev)");
+    console.warn("⚠️  EMAIL credentials not configured.");
     return;
   }
 
   try {
     const transport = createTransport();
-    // Non-blocking asynchronous dispatch so HTTP response is returned immediately to the frontend
     transport.sendMail({
       from: `"DevMate AI" <${process.env.EMAIL_USER}>`,
       to: toEmail,
-      subject: "DevMate AI — Verify Your Email",
-      text: `Hi ${name},\n\nYour DevMate AI email verification OTP is: ${otp}\n\nThis OTP expires in 10 minutes.\nIf you didn't request this, please ignore this email.`,
-      html: `
-        <div style="${baseStyle}">
-          <div style="${headerStyle}">
-            <h1 style="margin:0;font-size:20px;color:white">DevMate AI</h1>
-            <p style="margin:4px 0 0;color:rgba(255,255,255,.75);font-size:13px">Email Verification</p>
-          </div>
-          <div style="${bodyStyle}">
-            <h2 style="margin:0 0 10px;color:#e8e8f0">Hi ${name} 👋</h2>
-            <p style="color:#9ca3af;line-height:1.6">
-              Welcome to DevMate AI! Please verify your email address using the OTP below.
-              It expires in <strong style="color:#e8e8f0">10 minutes</strong>.
-            </p>
-            ${otpBlock(otp)}
-            <p style="color:#6b7280;font-size:13px">
-              If you didn't create a DevMate AI account, you can safely ignore this email.
-            </p>
-          </div>
-        </div>
-      `,
+      subject,
+      text,
+      html,
     }).then((info) => {
-      console.log("✅ Verification email sent successfully to", toEmail, ":", info.messageId);
+      console.log("✅ Email sent via Nodemailer to", toEmail, ":", info.messageId);
     }).catch((err) => {
-      console.error("❌ Failed to send verification email (non-fatal):", err.message);
+      console.error("❌ Failed to send email via Nodemailer:", err.message);
     });
   } catch (err) {
-    console.error("❌ Error initializing email transport:", err.message);
+    console.error("❌ Error initializing Nodemailer transport:", err.message);
   }
+}
+
+/**
+ * Send email verification OTP
+ */
+async function sendVerificationEmail(toEmail, name, otp) {
+  const subject = "DevMate AI — Verify Your Email";
+  const text = `Hi ${name},\n\nYour DevMate AI email verification OTP is: ${otp}\n\nThis OTP expires in 10 minutes.\nIf you didn't request this, please ignore this email.`;
+  const html = `
+    <div style="${baseStyle}">
+      <div style="${headerStyle}">
+        <h1 style="margin:0;font-size:20px;color:white">DevMate AI</h1>
+        <p style="margin:4px 0 0;color:rgba(255,255,255,.75);font-size:13px">Email Verification</p>
+      </div>
+      <div style="${bodyStyle}">
+        <h2 style="margin:0 0 10px;color:#e8e8f0">Hi ${name} 👋</h2>
+        <p style="color:#9ca3af;line-height:1.6">
+          Welcome to DevMate AI! Please verify your email address using the OTP below.
+          It expires in <strong style="color:#e8e8f0">10 minutes</strong>.
+        </p>
+        ${otpBlock(otp)}
+        <p style="color:#6b7280;font-size:13px">
+          If you didn't create a DevMate AI account, you can safely ignore this email.
+        </p>
+      </div>
+    </div>
+  `;
+
+  await dispatchEmail({ toEmail, name, subject, text, html });
 }
 
 /**
  * Send password reset OTP
  */
 async function sendPasswordResetEmail(toEmail, name, otp) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn("⚠️  EMAIL not configured — Reset OTP:", otp, "(logged for dev)");
-    return;
-  }
+  const subject = "DevMate AI — Password Reset OTP";
+  const text = `Hi ${name},\n\nYour DevMate AI password reset OTP is: ${otp}\n\nThis OTP expires in 10 minutes.\nIf you didn't request a password reset, please ignore this email.`;
+  const html = `
+    <div style="${baseStyle}">
+      <div style="${headerStyle}">
+        <h1 style="margin:0;font-size:20px;color:white">DevMate AI</h1>
+        <p style="margin:4px 0 0;color:rgba(255,255,255,.75);font-size:13px">Password Reset</p>
+      </div>
+      <div style="${bodyStyle}">
+        <h2 style="margin:0 0 10px;color:#e8e8f0">Hi ${name},</h2>
+        <p style="color:#9ca3af;line-height:1.6">
+          We received a request to reset your password. Use the OTP below.
+          It expires in <strong style="color:#e8e8f0">10 minutes</strong>.
+        </p>
+        ${otpBlock(otp)}
+        <p style="color:#6b7280;font-size:13px">
+          If you didn't request a password reset, your account is safe — just ignore this email.
+        </p>
+      </div>
+    </div>
+  `;
 
-  try {
-    const transport = createTransport();
-    // Non-blocking asynchronous dispatch so HTTP response is returned immediately to the frontend
-    transport.sendMail({
-      from: `"DevMate AI" <${process.env.EMAIL_USER}>`,
-      to: toEmail,
-      subject: "DevMate AI — Password Reset OTP",
-      text: `Hi ${name},\n\nYour DevMate AI password reset OTP is: ${otp}\n\nThis OTP expires in 10 minutes.\nIf you didn't request a password reset, please ignore this email.`,
-      html: `
-        <div style="${baseStyle}">
-          <div style="${headerStyle}">
-            <h1 style="margin:0;font-size:20px;color:white">DevMate AI</h1>
-            <p style="margin:4px 0 0;color:rgba(255,255,255,.75);font-size:13px">Password Reset</p>
-          </div>
-          <div style="${bodyStyle}">
-            <h2 style="margin:0 0 10px;color:#e8e8f0">Hi ${name},</h2>
-            <p style="color:#9ca3af;line-height:1.6">
-              We received a request to reset your password. Use the OTP below.
-              It expires in <strong style="color:#e8e8f0">10 minutes</strong>.
-            </p>
-            ${otpBlock(otp)}
-            <p style="color:#6b7280;font-size:13px">
-              If you didn't request a password reset, your account is safe — just ignore this email.
-            </p>
-          </div>
-        </div>
-      `,
-    }).then((info) => {
-      console.log("✅ Password reset email sent successfully to", toEmail, ":", info.messageId);
-    }).catch((err) => {
-      console.error("❌ Failed to send password reset email (non-fatal):", err.message);
-    });
-  } catch (err) {
-    console.error("❌ Error initializing email transport:", err.message);
-  }
+  await dispatchEmail({ toEmail, name, subject, text, html });
 }
 
 module.exports = { sendVerificationEmail, sendPasswordResetEmail };
