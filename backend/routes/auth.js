@@ -20,6 +20,59 @@ function sendTokens(res, user) {
   return { accessToken, refreshToken, user };
 }
 
+// ── Diagnostic: test email sending from Render ──────────────────────────────
+router.get("/test-email", async (req, res) => {
+  const nodemailer = require("nodemailer");
+  const pass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
+  const user = process.env.EMAIL_USER;
+
+  if (!user || !pass) {
+    return res.json({
+      status: "error",
+      message: "EMAIL_USER or EMAIL_PASS environment variable is missing on server",
+      hasUser: Boolean(user),
+      hasPass: Boolean(pass),
+    });
+  }
+
+  const transport = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    family: 4,
+    auth: { user, pass },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  });
+
+  try {
+    const verify = await transport.verify();
+    const info = await transport.sendMail({
+      from: `"DevMate AI" <${user}>`,
+      to: req.query.to || user,
+      subject: "DevMate AI Diagnostic Test Email",
+      text: "If you receive this, Render email sending is 100% working!",
+    });
+    return res.json({
+      status: "success",
+      verify,
+      messageId: info.messageId,
+      response: info.response,
+      sentTo: req.query.to || user,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "failed",
+      error: err.message,
+      code: err.code,
+      command: err.command,
+      response: err.response,
+      responseCode: err.responseCode,
+    });
+  }
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/auth/signup
 // ─────────────────────────────────────────────────────────────────────────────
