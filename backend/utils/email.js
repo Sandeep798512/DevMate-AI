@@ -62,7 +62,7 @@ async function dispatchEmail({ toEmail, name, subject, text, html }) {
         body: JSON.stringify({
           sender: {
             name: "DevMate AI",
-            email: process.env.EMAIL_USER || "sandeepgaud8081@gmail.com",
+            email: process.env.EMAIL_USER || "no-reply@devmate.ai",
           },
           to: [{ email: toEmail, name: name || "User" }],
           subject,
