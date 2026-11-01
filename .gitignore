@@ -5,3 +5,4 @@ backend/uploads/*
 *.log
 .DS_Store
 dist/
+generate_deck.py
